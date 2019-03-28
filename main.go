@@ -9,9 +9,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 )
-var importStr = "import UIKit \nimport ObjectMapper\nclass DeviceResponse: BaseResponse {\n"
-var initStr   = " override func mapping(map: Map) {\nsuper.mapping(map: map)"
+var importStr = "import UIKit \nimport ObjectMapper\nclass  DeviceResponse: BaseResponse {\n"
+var initStr   = "\n override func mapping(map: Map){\n \n super.mapping(map: map)\n"
 func main() {
 
 
@@ -49,6 +51,7 @@ func handleSwift(c echo.Context ) error{
 	v,m := print_json(dataMap)
 	fmt.Println("v===",v)
 	fmt.Println("m===",m)
+	saveFile(v,m)
 	return c.JSON(200,"ok")
 }
 func print_json(m map[string]interface{}) (string,string){
@@ -127,8 +130,13 @@ func print_json(m map[string]interface{}) (string,string){
 	fmt.Println("objMapArry===",objMapArry)
 	return valias,mapings
 }
-func saveFile(st string)  {
-	f, _ := os.Create("./my.swift") //创建文件
+func saveFile(st string ,st2 string)  {
+
+	fmt.Println("time===",time.Now().Unix())
+	//base 10进制
+	times := strconv.FormatInt(time.Now().Unix(),10)
+	var file = "./" + times + ".swift"
+	f, _ := os.Create(file) //创建文件
 
 	//defer f.Close()
 	w := bufio.NewWriter(f) //创建新的 Writer 对象
@@ -136,10 +144,12 @@ func saveFile(st string)  {
 	fmt.Printf("写入 %d 个字节n", n4)
 
 	w.WriteString(st)
+	w.WriteString(initStr)
+	w.WriteString(st2)
 
 	//f.Close()
 	var going = func(){
-		w.WriteString("}}")
+		w.WriteString("\n  }\n }")
 		w.Flush()
 		f.Close()
 	}
@@ -150,14 +160,14 @@ func saveFile(st string)  {
 func appendStringVar(arry []string ,typeS string) string {
 	var s = ""
 	for str := range arry{
-		s = s + "\n var " + arry[str] + ":" + typeS+ "?"
+		s = s + "\n var " + arry[str] + ":" + typeS+ "?\n"
 	}
 	return s
 }
 func appendStringMapping(arry []string ) string {
 	var s = ""
 	for str := range arry{
-		s = s + "\n self. " + arry[str] + " <- " +  "map[" + arry[str] + "]"
+		s = s + "\n self. " + arry[str] + " <- " +  "map[" + arry[str] + "]\n"
 	}
 	return s
 }
